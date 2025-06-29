@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galaxy Defender - Space Shooter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+      body {
+            margin: 0;
+            padding: 20px;
+            background: #001122;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            color: #00ffaa;
+            text-decoration: underline;
+            text-align: center;
+            font-size: 3em;
+            font-family: Arial, sans-serif;
+        }
+
+        .rocket {
+            font-size: 2em;
+            color: #ff6600;
+            animation: rocket-glow 1.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes rocket-glow {
+            from { text-shadow: 0 0 10px #ff6600; }
+            to { text-shadow: 0 0 20px #ff6600, 0 0 30px #ff9900; }
+        }
+
+        .title-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 50px;
+            margin-bottom: 20px;
+        }
+
+        .game-container {
+            position:relative;
+            width: 1200px;
+            height: 800px;
+            border: 3px solid #00ffff;
+            border-radius: 15px;
+            overflow: hidden;
+            background: linear-gradient(180deg, #000428 0%, #004e92 100%);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+            margin:auto;
+        }
+
+        canvas {
+            display: block;
+            background: transparent;
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .hud {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            color: #00ffff;
+        }
+
+        .lives {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            color: #ff6b6b;
+        }
+
+        .menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 40px;
+            border-radius: 20px;
+            border: 3px solid #00ffff;
+            pointer-events: all;
+            backdrop-filter: blur(10px);
+        }
+
+        .menu h1 {
+            color: #00ffff;
+            margin-bottom: 30px;
+            font-size: 3em;
+            text-shadow: 0 0 20px #00ffff;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px #00ffff; }
+            to { text-shadow: 0 0 30px #00ffff, 0 0 40px #00ffff; }
+        }
+
+        .menu button {
+            background: linear-gradient(45deg, #ff006e, #8338ec);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 0, 110, 0.3);
+            min-width: 200px;
+        }
+
+        .menu button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(255, 0, 110, 0.5);
+            background: linear-gradient(45deg, #ff1a7a, #9146ff);
+        }
+
+        .name-input {
+            margin: 15px 0;
+        }
+
+        .name-input input {
+            padding: 12px;
+            border: 2px solid #00ffff;
+            border-radius: 25px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            text-align: center;
+            font-size: 16px;
+            width: 250px;
+        }
+
+        .name-input input::placeholder {
+            color: #888;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: all;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .controls button, .volume-controls button {
+            background: rgba(0, 255, 255, 0.2);
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .controls button:hover, .volume-controls button:hover {
+            background: rgba(0, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .volume-controls {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            pointer-events: all;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            border: 3px solid #ff0066;
+            pointer-events: all;
+            z-index: 20;
+            backdrop-filter: blur(10px);
+        }
+
+        .game-over h2 {
+            color: #ff0066;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #ff0066;
+        }
+
+        .instructions {
+            text-align: left;
+            margin-top: 20px;
+            font-size: 14px;
+            line-height: 1.8;
+            color:#00ffff;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #00ffff;
+        }
+
+        .instructions h3 {
+            color: #00ffff;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        /* Touch Controls */
+        .touch-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            display: none;
+            pointer-events: all;
+            z-index: 15;
+        }
+
+        .touch-controls.active {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+        }
+
+        .dpad {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+
+        .dpad-button {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 255, 255, 0.3);
+            border: 2px solid #00ffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #00ffff;
+            font-size: 18px;
+            font-weight: bold;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .dpad-button:active {
+            background: rgba(0, 255, 255, 0.6);
+            transform: scale(0.95);
+        }
+
+        .dpad-up { top: 0; left: 40px; }
+        .dpad-down { bottom: 0; left: 40px; }
+        .dpad-left { top: 40px; left: 0; }
+        .dpad-right { top: 40px; right: 0; }
+
+        .shoot-button {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 0, 110, 0.3);
+            border: 3px solid #ff006e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ff006e;
+            font-size: 24px;
+            font-weight: bold;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .shoot-button:active {
+            background: rgba(255, 0, 110, 0.6);
+            transform: scale(0.95);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1250px) {
+            .game-container {
+                width: 95vw;
+                height: 70vh;
+                max-width: 1200px;
+                max-height: 800px;
+            }
+            
+            #gameCanvas {
+                width: 100%;
+                height: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+                border: none;
+            }
+
+            .menu {
+                padding: 30px 20px;
+                width: 90%;
+                max-width: 400px;
+            }
+
+            .menu h1 {
+                font-size: 2.2em;
+            }
+
+            .menu button {
+                min-width: 150px;
+                padding: 12px 25px;
+                font-size: 14px;
+            }
+
+            .name-input input {
+                width: 200px;
+                font-size: 14px;
+            }
+
+            .hud, .lives {
+                font-size: 14px;
+            }
+
+            .volume-controls {
+                top: 50px;
+            }
+
+            .volume-controls button {
+                padding: 8px 15px;
+                font-size: 12px;
+            }
+
+            .controls {
+                bottom: 10px;
+            }
+
+            .controls button {
+                padding: 8px 15px;
+                font-size: 12px;
+            }
+
+            .instructions {
+                font-size: 12px;
+                padding: 15px;
+            }
+
+            .game-over {
+                padding: 30px 20px;
+                width: 90%;
+                max-width: 400px;
+            }
+
+            .game-over h2 {
+                font-size: 2em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .menu h1 {
+                font-size: 1.8em;
+            }
+
+            .name-input input {
+                width: 180px;
+            }
+
+            .dpad {
+                width: 100px;
+                height: 100px;
+            }
+
+            .dpad-button {
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
+            }
+
+            .dpad-up, .dpad-down { left: 32.5px; }
+            .dpad-left, .dpad-right { top: 32.5px; }
+
+            .shoot-button {
+                width: 70px;
+                height: 70px;
+                font-size: 20px;
+            }
+        }
+
+        /* Landscape orientation for mobile */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .menu {
+                padding: 20px;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+
+            .menu h1 {
+                font-size: 1.8em;
+                margin-bottom: 15px;
+            }
+
+            .instructions {
+                max-height: 200px;
+                overflow-y: auto;
+            }
+
+            .volume-controls {
+                top: 10px;
+            }
+
+            .hud, .lives {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+     <div class="title-container">
+        <div class="rocket">🚀</div>
+        <h1>Calaxy Defender</h1>
+        <div class="rocket">🚀</div>
+    </div>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="1200" height="800"></canvas>
+        
+        <div class="ui-overlay">
+            <div class="hud">
+                <div>Σκορ: <span id="score">0</span></div>
+                <div>Επίπεδο: <span id="level">1</span></div>
+            </div>
+            
+            <div class="lives">
+                Ζωές: <span id="lives-hearts"></span>
+            </div>
+
+            <div class="volume-controls">
+                <button onclick="toggleSound()">🔊 Ήχος</button>
+                <button onclick="toggleMusic()">🎵 Μουσική</button>
+            </div>
+        </div>
+   
+        <!-- Main Menu -->
+        <div id="mainMenu" class="menu">
+            <h1>Galaxy Defender</h1>
+            <div class="name-input">
+                <input type="text" id="playerName" placeholder="Γράψε το όνομά σου" maxlength="20">
+            </div>
+            <button onclick="startGame()">Ξεκίνα Παιχνίδι</button>
+            <button onclick="showInstructions()">Οδηγίες</button>
+            <button onclick="showHighScores()">Υψηλά Σκορ</button>
+            
+            <div class="instructions" id="instructionsPanel" style="display: none;">
+                <h3>Πώς να παίξεις:</h3>
+                <p><strong>Κίνηση:</strong> Βέλη πληκτρολογίου ή WASD</p>
+                <p><strong>Πυροβολισμός:</strong> Spacebar ή Click</p>
+                <p><strong>Παύση:</strong> P ή Escape</p>
+                <p><strong>Στόχος:</strong> Κατάστρεψε τους εχθρούς και αποφύγε τις επιθέσεις τους!</p>
+                <p><strong>Bonus:</strong> Μάζεψε power-ups για ενίσχυση όπλων!</p>
+                <button onclick="hideInstructions()">Κλείσιμο</button>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameOverMenu" class="game-over" style="display: none;">
+            <h2>Τέλος Παιχνιδιού!</h2>
+            <p>Σκορ: <span id="finalScore">0</span></p>
+            <p>Επίπεδο: <span id="finalLevel">1</span></p>
+            <div class="name-input">
+                <input type="text" id="gameOverName" placeholder="Όνομα για High Score" maxlength="20">
+            </div>
+            <button onclick="saveScore()">Αποθήκευση Σκορ</button>
+            <button onclick="restartGame()">Νέο Παιχνίδι</button>
+            <button onclick="showMainMenu()">Κύριο Μενού</button>
+        </div>
+
+        <!-- High Scores -->
+        <div id="highScoresMenu" class="menu" style="display: none;">
+            <h1>Υψηλά Σκορ</h1>
+            <div id="highScoresList"></div>
+            <button onclick="hideHighScores()">Πίσω</button>
+        </div>
+
+        <!-- Touch Controls -->
+        <div class="touch-controls" id="touchControls">
+            <div class="dpad">
+                <div class="dpad-button dpad-up" data-direction="up">↑</div>
+                <div class="dpad-button dpad-down" data-direction="down">↓</div>
+                <div class="dpad-button dpad-left" data-direction="left">←</div>
+                <div class="dpad-button dpad-right" data-direction="right">→</div>
+            </div>
+            <div class="shoot-button" id="shootButton">🔥</div>
+        </div>
+
+        <div class="controls">
+            <button onclick="togglePause()">Παύση (P)</button>
+            <button onclick="showMainMenu()">Μενού (Esc)</button>
+        </div>
+    </div>
+
+    <script>
+        // Game variables
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let gameState = 'menu'; // menu, playing, paused, gameOver
+        let gameLoop;
+        let lastTime = 0;
+        
+        // Game objects
+        let player;
+        let bullets = [];
+        let enemies = [];
+        let particles = [];
+        let powerUps = [];
+        
+        // Game stats
+        let score = 0;
+        let level = 1;
+        let lives = 3;
+        let enemySpawnTimer = 0;
+        let powerUpSpawnTimer = 0;
+        
+        // Settings
+        let soundEnabled = true;
+        let musicEnabled = true;
+
+        // Background music variables 
+        let backgroundMusic = null;
+        let audioContext = null;
+        
+        // Input handling
+        let keys = {};
+        let touchInput = {
+            up: false,
+            down: false,
+            left: false,
+            right: false,
+            shoot: false
+        };
+
+        // Responsive canvas
+        function resizeCanvas() {
+            const container = document.querySelector('.game-container');
+            const rect = container.getBoundingClientRect();
+            
+            if (canvas.width !== rect.width || canvas.height !== rect.height) {
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+            }
+        }
+
+        // Player class
+        class Player {
+            constructor() {
+                this.x = canvas.width / 2;
+                this.y = canvas.height - 80;
+                this.width = 40;
+                this.height = 40;
+                this.speed = 5;
+                this.shootCooldown = 0;
+                this.weaponLevel = 1;
+                this.shield = false;
+                this.shieldTimer = 0;
+            }
+
+            update() {
+                // Movement
+                if ((keys['ArrowLeft'] || keys['a'] || keys['A'] || touchInput.left) && this.x > 0) {
+                    this.x -= this.speed;
+                }
+                if ((keys['ArrowRight'] || keys['d'] || keys['D'] || touchInput.right) && this.x < canvas.width - this.width) {
+                    this.x += this.speed;
+                }
+                if ((keys['ArrowUp'] || keys['w'] || keys['W'] || touchInput.up) && this.y > 0) {
+                    this.y -= this.speed;
+                }
+                if ((keys['ArrowDown'] || keys['s'] || keys['S'] || touchInput.down) && this.y < canvas.height - this.height) {
+                    this.y += this.speed;
+                }
+
+                // Shooting
+                if (this.shootCooldown > 0) this.shootCooldown--;
+                
+                if ((keys[' '] || touchInput.shoot) && this.shootCooldown <= 0) {
+                    this.shoot();
+                    this.shootCooldown = 10 - this.weaponLevel;
+                }
+
+                // Shield timer
+                if (this.shield && this.shieldTimer > 0) {
+                    this.shieldTimer--;
+                    if (this.shieldTimer <= 0) {
+                        this.shield = false;
+                    }
+                }
+            }
+
+            shoot() {
+                if (this.weaponLevel === 1) {
+                    bullets.push(new Bullet(this.x + this.width/2, this.y, 0, -8, 'player'));
+                } else if (this.weaponLevel === 2) {
+                    bullets.push(new Bullet(this.x + this.width/2 - 5, this.y, 0, -8, 'player'));
+                    bullets.push(new Bullet(this.x + this.width/2 + 5, this.y, 0, -8, 'player'));
+                } else if (this.weaponLevel >= 3) {
+                    bullets.push(new Bullet(this.x + this.width/2, this.y, 0, -8, 'player'));
+                    bullets.push(new Bullet(this.x + this.width/2 - 10, this.y, -2, -8, 'player'));
+                    bullets.push(new Bullet(this.x + this.width/2 + 10, this.y, 2, -8, 'player'));
+                }
+                
+                playSound('shoot');
+            }
+
+            draw() {
+                // Draw shield
+                if (this.shield) {
+                    ctx.save();
+                    ctx.globalAlpha = 0.3 + Math.sin(Date.now() / 100) * 0.2;
+                    ctx.strokeStyle = '#00ffff';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(this.x + this.width/2, this.y + this.height/2, this.width/2 + 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                // Draw player ship
+                ctx.fillStyle = '#00ffff';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                
+                // Ship details
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(this.x + 15, this.y + 5, 10, 25);
+                ctx.fillStyle = '#ff0066';
+                ctx.fillRect(this.x + 18, this.y + 35, 4, 5);
+            }
+        }
+
+        // Bullet class
+        class Bullet {
+            constructor(x, y, vx, vy, type) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.type = type;
+                this.width = 4;
+                this.height = 8;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+            }
+
+            draw() {
+                if (this.type === 'player') {
+                    ctx.fillStyle = '#00ffff';
+                } else {
+                    ctx.fillStyle = '#ff0066';
+                }
+                ctx.fillRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
+            }
+
+            isOffScreen() {
+                return this.y < -10 || this.y > canvas.height + 10 || 
+                       this.x < -10 || this.x > canvas.width + 10;
+            }
+        }
+
+        // Enemy class
+        class Enemy {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.shootTimer = Math.random() * 120 + 60;
+                
+                if (type === 'basic') {
+                    this.width = 30;
+                    this.height = 30;
+                    this.speed = 1 + level * 0.2;
+                    this.hp = 1;
+                    this.points = 10;
+                    this.color = '#ff6b6b';
+                } else if (type === 'fast') {
+                    this.width = 25;
+                    this.height = 25;
+                    this.speed = 2 + level * 0.3;
+                    this.hp = 1;
+                    this.points = 15;
+                    this.color = '#4ecdc4';
+                } else if (type === 'tank') {
+                    this.width = 40;
+                    this.height = 40;
+                    this.speed = 0.5 + level * 0.1;
+                    this.hp = 3;
+                    this.points = 30;
+                    this.color = '#ffe66d';
+                }
+            }
+
+            update() {
+                this.y += this.speed;
+                
+                // Shooting
+                this.shootTimer--;
+                if (this.shootTimer <= 0) {
+                    this.shoot();
+                    this.shootTimer = Math.random() * 180 + 120;
+                }
+            }
+
+            shoot() {
+                if (this.y > 50 && this.y < canvas.height - 100) {
+                    bullets.push(new Bullet(this.x + this.width/2, this.y + this.height, 0, 3, 'enemy'));
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                
+                // Enemy details
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(this.x + 5, this.y + 5, this.width - 10, this.height - 10);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x + 10, this.y + 10, this.width - 20, this.height - 20);
+            }
+
+            takeDamage() {
+                this.hp--;
+                if (this.hp <= 0) {
+                    this.destroy();
+                    return true;
+                }
+                return false;
+            }
+
+            destroy() {
+                // Create explosion particles
+                for (let i = 0; i < 8; i++) {
+                    particles.push(new Particle(
+                        this.x + this.width/2,
+                        this.y + this.height/2,
+                        (Math.random() - 0.5) * 6,
+                        (Math.random() - 0.5) * 6,
+                        this.color
+                    ));
+                }
+                
+                score += this.points;
+                playSound('explosion');
+            }
+        }
+
+        // Particle class
+        class Particle {
+            constructor(x, y, vx, vy, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.color = color;
+                this.life = 30;
+                this.maxLife = 30;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life--;
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.life / this.maxLife;
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x - 2, this.y - 2, 4, 4);
+                ctx.restore();
+            }
+        }
+
+        // PowerUp class
+        class PowerUp {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.width = 20;
+                this.height = 20;
+                this.speed = 2;
+                this.bob = 0;
+            }
+
+            update() {
+                this.y += this.speed;
+                this.bob += 0.1;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + this.width/2, this.y + this.height/2 + Math.sin(this.bob) * 3);
+                
+                if (this.type === 'weapon') {
+                    ctx.fillStyle = '#ff6b00';
+                    ctx.fillRect(-this.width/2, -this.height/2, this.width, this.height);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('W', 0, 4);
+                } else if (this.type === 'shield') {
+                    ctx.fillStyle = '#00ff6b';
+                    ctx.fillRect(-this.width/2, -this.height/2, this.width, this.height);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('S', 0, 4);
+                } else if (this.type === 'life') {
+                    ctx.fillStyle = '#ff0066';
+                    ctx.fillRect(-this.width/2, -this.height/2, this.width, this.height);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('L', 0, 4);
+                }
+                
+                ctx.restore();
+            }
+
+            collect() {
+                if (this.type === 'weapon') {
+                    player.weaponLevel = Math.min(player.weaponLevel + 1, 3);
+                } else if (this.type === 'shield') {
+                    player.shield = true;
+                    player.shieldTimer = 600; // 10 seconds at 60fps
+                } else if (this.type === 'life') {
+                    lives = Math.min(lives + 1, 5);
+                }
+                
+                score += 50;
+                playSound('powerup');
+            }
+        }
+
+        // Collision detection
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        // Initialize game
+        function initGame() {
+            player = new Player();
+            bullets = [];
+            enemies = [];
+            particles = [];
+            powerUps = [];
+            score = 0;
+            level = 1;
+            lives = 3;
+            enemySpawnTimer = 0;
+            powerUpSpawnTimer = 0;
+            updateUI();
+        }
+
+        // Game loop
+        function gameStep(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+
+            if (gameState === 'playing') {
+                update();
+                draw();
+            }
+
+            gameLoop = requestAnimationFrame(gameStep);
+        }
+
+    function update() {
+    resizeCanvas();
+    
+    // Update player
+    player.update();
+
+    // Update bullets
+    bullets.forEach((bullet, index) => {
+        bullet.update();
+        if (bullet.isOffScreen()) {
+            bullets.splice(index, 1);
+        }
+    });
+
+    // Update enemies
+    enemies.forEach((enemy, index) => {
+        enemy.update();
+        if (enemy.y > canvas.height) {
+            enemies.splice(index, 1);
+        }
+    });
+
+    // Update particles
+    particles.forEach((particle, index) => {
+        particle.update();
+        if (particle.life <= 0) {
+            particles.splice(index, 1);
+        }
+    });
+
+    // Update power-ups
+    powerUps.forEach((powerUp, index) => {
+        powerUp.update();
+        if (powerUp.y > canvas.height) {
+            powerUps.splice(index, 1);
+        }
+    });
+
+    // Spawn enemies
+    enemySpawnTimer++;
+    if (enemySpawnTimer > Math.max(60 - level * 5, 20)) {
+        spawnEnemy();
+        enemySpawnTimer = 0;
+    }
+
+    // Spawn power-ups
+    powerUpSpawnTimer++;
+    if (powerUpSpawnTimer > 900) { // Every 15 seconds
+        spawnPowerUp();
+        powerUpSpawnTimer = 0;
+    }
+
+    // Check collisions
+    checkCollisions();
+
+    // Check level progression
+    if (score > level * 500) {
+        if (level < 20) {
+            level++;
+            playSound('levelup');
+        } else if (level === 20) {
+            // Victory! Game completed
+            gameVictory();
+        }
+    }
+
+    // Update UI
+    updateUI();
+}
+
+
+        function draw() {
+            // Clear canvas with starfield effect
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw stars
+            drawStars();
+
+            // Draw game objects
+            player.draw();
+            
+            bullets.forEach(bullet => bullet.draw());
+            enemies.forEach(enemy => enemy.draw());
+            particles.forEach(particle => particle.draw());
+            powerUps.forEach(powerUp => powerUp.draw());
+        }
+
+        function drawStars() {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            for (let i = 0; i < 50; i++) {
+                const x = (i * 137.5) % canvas.width;
+                const y = (Date.now() * 0.1 + i * 50) % canvas.height;
+                ctx.fillRect(x, y, 1, 1);
+            }
+        }
+
+        function spawnEnemy() {
+            const x = Math.random() * (canvas.width - 40);
+            const types = ['basic', 'fast', 'tank'];
+            const weights = [0.6, 0.3, 0.1];
+            
+            let random = Math.random();
+            let type = 'basic';
+            
+            if (random < weights[2]) type = 'tank';
+            else if (random < weights[1] + weights[2]) type = 'fast';
+            
+            enemies.push(new Enemy(x, -40, type));
+        }
+
+        function spawnPowerUp() {
+            const x = Math.random() * (canvas.width - 20);
+            const types = ['weapon', 'shield', 'life'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            powerUps.push(new PowerUp(x, -20, type));
+        }
+
+        function checkCollisions() {
+            // Player bullets vs enemies
+            bullets.forEach((bullet, bulletIndex) => {
+                if (bullet.type === 'player') {
+                    enemies.forEach((enemy, enemyIndex) => {
+                        if (checkCollision(bullet, enemy)) {
+                            bullets.splice(bulletIndex, 1);
+                            if (enemy.takeDamage()) {
+                                enemies.splice(enemyIndex, 1);
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Enemy bullets vs player
+            bullets.forEach((bullet, bulletIndex) => {
+                if (bullet.type === 'enemy') {
+                    if (checkCollision(bullet, player)) {
+                        bullets.splice(bulletIndex, 1);
+                        if (!player.shield) {
+                            playerHit();
+                        }
+                    }
+                }
+            });
+
+            // Enemies vs player
+            enemies.forEach((enemy, enemyIndex) => {
+                if (checkCollision(enemy, player)) {
+                    enemies.splice(enemyIndex, 1);
+                    if (!player.shield) {
+                        playerHit();
+                    }
+                }
+            });
+
+            // Player vs power-ups
+            powerUps.forEach((powerUp, powerUpIndex) => {
+                if (checkCollision(powerUp, player)) {
+                    powerUp.collect();
+                    powerUps.splice(powerUpIndex, 1);
+                }
+            });
+        }
+
+        function playerHit() {
+            lives--;
+            playSound('playerhit');
+            
+            // Create damage particles
+            for (let i = 0; i < 10; i++) {
+                particles.push(new Particle(
+                    player.x + player.width/2,
+                    player.y + player.height/2,
+                    (Math.random() - 0.5) * 8,
+                    (Math.random() - 0.5) * 8,
+                    '#ff0066'
+                ));
+            }
+
+            if (lives <= 0) {
+                gameOver();
+            }
+        }
+
+       function updateUI() {
+    document.getElementById('score').textContent = score;
+    document.getElementById('level').textContent = level;
+    
+    // Εμφάνιση ζωών με καρδούλες
+    const heartsContainer = document.getElementById('lives-hearts');
+    heartsContainer.innerHTML = '❤️'.repeat(lives);
+}
+        // Sound functions
+       
+ // Background music functions - Χαρούμενη μελωδία
+function initBackgroundMusic() {
+    if (!musicEnabled || backgroundMusic) return;
+    
+    try {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        // Resume context if suspended
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+        
+        // Δημιουργία πολλαπλών oscillators για πλούσιο ήχο
+        const melody1 = audioContext.createOscillator();
+        const melody2 = audioContext.createOscillator();
+        const bass = audioContext.createOscillator();
+        const harmony = audioContext.createOscillator();
+        
+        // Gain nodes για κάθε φωνή
+        const melodyGain1 = audioContext.createGain();
+        const melodyGain2 = audioContext.createGain();
+        const bassGain = audioContext.createGain();
+        const harmonyGain = audioContext.createGain();
+        const masterGain = audioContext.createGain();
+        
+        // Τύποι κυμάτων για διαφορετικούς ήχους
+        melody1.type = 'sine';      // Απαλή μελωδία
+        melody2.type = 'triangle';  // Πιο έντονη μελωδία
+        bass.type = 'sawtooth';     // Βαθύς ήχος
+        harmony.type = 'square';    // Αρμονία
+        
+        // Χαρούμενες συχνότητες (Do major scale)
+        const baseFreq = 261.63; // C4 (Do)
+        melody1.frequency.setValueAtTime(baseFreq, audioContext.currentTime);          // Do
+        melody2.frequency.setValueAtTime(baseFreq * 1.25, audioContext.currentTime);  // Mi
+        bass.frequency.setValueAtTime(baseFreq * 0.5, audioContext.currentTime);      // Do (χαμηλότερη οκτάβα)
+        harmony.frequency.setValueAtTime(baseFreq * 1.5, audioContext.currentTime);   // Sol
+        
+        // LFO για tremolo effect (τρεμουλιαστός ήχος)
+        const lfo1 = audioContext.createOscillator();
+        const lfo2 = audioContext.createOscillator();
+        const lfoGain1 = audioContext.createGain();
+        const lfoGain2 = audioContext.createGain();
+        
+        lfo1.frequency.setValueAtTime(0.8, audioContext.currentTime);  // Αργός tremolo
+        lfo2.frequency.setValueAtTime(1.2, audioContext.currentTime);  // Πιο γρήγορος tremolo
+        lfoGain1.gain.setValueAtTime(10, audioContext.currentTime);
+        lfoGain2.gain.setValueAtTime(15, audioContext.currentTime);
+        
+        // Σύνδεση LFO με μελωδίες για ζωντάνια
+        lfo1.connect(lfoGain1);
+        lfo2.connect(lfoGain2);
+        lfoGain1.connect(melody1.frequency);
+        lfoGain2.connect(melody2.frequency);
+        
+        // Ρυθμικές αλλαγές στις συχνότητες για μελωδία
+        const time = audioContext.currentTime;
+        const noteDuration = 2; // Διάρκεια κάθε νότας σε δευτερόλεπτα
+        
+        // Μελωδική γραμμή (Do-Re-Mi-Fa-Sol-Fa-Mi-Re)
+        const melodyNotes = [1, 1.125, 1.25, 1.33, 1.5, 1.33, 1.25, 1.125];
+        const harmonyNotes = [1.5, 1.67, 1.875, 2, 2.25, 2, 1.875, 1.67];
+        
+        for (let i = 0; i < melodyNotes.length; i++) {
+            const noteTime = time + (i * noteDuration);
+            melody1.frequency.setValueAtTime(baseFreq * melodyNotes[i], noteTime);
+            harmony.frequency.setValueAtTime(baseFreq * harmonyNotes[i], noteTime);
+        }
+        
+        // Επαναλαμβανόμενη μελωδία
+        setInterval(() => {
+            if (backgroundMusic && musicEnabled) {
+                try {
+                    const currentTime = audioContext.currentTime;
+                    for (let i = 0; i < melodyNotes.length; i++) {
+                        const noteTime = currentTime + (i * noteDuration);
+                        melody1.frequency.setValueAtTime(baseFreq * melodyNotes[i], noteTime);
+                        harmony.frequency.setValueAtTime(baseFreq * harmonyNotes[i], noteTime);
+                    }
+                } catch (e) {
+                    // Oscillator ήδη σταμάτησε
+                }
+            }
+        }, noteDuration * melodyNotes.length * 1000);
+        
+        // Connections
+        melody1.connect(melodyGain1);
+        melody2.connect(melodyGain2);
+        bass.connect(bassGain);
+        harmony.connect(harmonyGain);
+        
+        melodyGain1.connect(masterGain);
+        melodyGain2.connect(masterGain);
+        bassGain.connect(masterGain);
+        harmonyGain.connect(masterGain);
+        
+        masterGain.connect(audioContext.destination);
+        
+        // Ρύθμιση έντασης για κάθε φωνή
+        melodyGain1.gain.setValueAtTime(0.03, audioContext.currentTime);  // Κύρια μελωδία
+        melodyGain2.gain.setValueAtTime(0.02, audioContext.currentTime);  // Δευτερεύουσα μελωδία
+        bassGain.gain.setValueAtTime(0.015, audioContext.currentTime);    // Μπάσο
+        harmonyGain.gain.setValueAtTime(0.02, audioContext.currentTime);  // Αρμονία
+        masterGain.gain.setValueAtTime(0.4, audioContext.currentTime);    // Συνολική ένταση
+        
+        // Fade in effect
+        masterGain.gain.setValueAtTime(0, audioContext.currentTime);
+        masterGain.gain.linearRampToValueAtTime(0.4, audioContext.currentTime + 2);
+        
+        // Ξεκίνημα όλων των oscillators
+        melody1.start();
+        melody2.start();
+        bass.start();
+        harmony.start();
+        lfo1.start();
+        lfo2.start();
+        
+        // Αποθήκευση αναφοράς για το σταμάτημα
+        backgroundMusic = { 
+            melody1, 
+            melody2, 
+            bass, 
+            harmony, 
+            lfo1, 
+            lfo2, 
+            masterGain 
+        };
+        
+    } catch (error) {
+        console.log('Background music not supported:', error);
+    }
+}
+
+function playSound(type) {
+    if (!soundEnabled) return;
+    
+    try {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        // Resume context if suspended
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+        
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        switch(type) {
+            case 'shoot':
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
+                break;
+            case 'explosion':
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.3);
+                break;
+            case 'powerup':
+                oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(800, audioContext.currentTime + 0.2);
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.2);
+                break;
+            case 'playerhit':
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(100, audioContext.currentTime + 0.5);
+                gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.5);
+                break;
+            case 'levelup':
+                oscillator.frequency.setValueAtTime(523, audioContext.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(784, audioContext.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.3);
+                break;
+        }
+    } catch (error) {
+        console.log('Sound not supported:', error);
+    }
+}
+  function stopBackgroundMusic() {
+    if (backgroundMusic) {
+        try {
+            // Fade out effect
+            backgroundMusic.masterGain.gain.linearRampToValueAtTime(0, audioContext.currentTime + 1);
+            
+            // Σταμάτημα όλων των oscillators μετά από 1 δευτερόλεπτο
+            setTimeout(() => {
+                if (backgroundMusic) {
+                    backgroundMusic.melody1.stop();
+                    backgroundMusic.melody2.stop();
+                    backgroundMusic.bass.stop();
+                    backgroundMusic.harmony.stop();
+                    backgroundMusic.lfo1.stop();
+                    backgroundMusic.lfo2.stop();
+                    backgroundMusic = null;
+                }
+            }, 1000);
+        } catch (error) {
+            // Already stopped
+            backgroundMusic = null;
+        }
+    }
+}
+
+    // Game control functions
+    function startGame() {
+    const name = document.getElementById('playerName').value.trim();
+    if (name) {
+        localStorage.setItem('galaxyDefenderPlayerName', name);
+    }
+    
+    document.getElementById('mainMenu').style.display = 'none';
+    gameState = 'playing';
+    initGame();
+    
+    // Initialize audio context on user interaction
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
+    
+    initBackgroundMusic();
+    
+    if (window.innerWidth <= 768) {
+        document.getElementById('touchControls').classList.add('active');
+    }
+}
+
+        function gameOver() {
+            gameState = 'gameOver';
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalLevel').textContent = level;
+            
+            const savedName = localStorage.getItem('galaxyDefenderPlayerName') || '';
+            document.getElementById('gameOverName').value = savedName;
+            
+            document.getElementById('gameOverMenu').style.display = 'block';
+            document.getElementById('touchControls').classList.remove('active');
+        }
+    
+    function gameVictory() {
+    gameState = 'victory';
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalLevel').textContent = level;
+            
+            // Change the game over screen to victory
+            const gameOverTitle = document.querySelector('#gameOverMenu h2');
+            gameOverTitle.textContent = 'ΝΙΚΗ! Παιχνίδι Ολοκληρώθηκε!';
+            gameOverTitle.style.color = '#00ffaa';
+            
+            const savedName = localStorage.getItem('galaxyDefenderPlayerName') || '';
+            document.getElementById('gameOverName').value = savedName;
+            
+            document.getElementById('gameOverMenu').style.display = 'block';
+            document.getElementById('gameOverMenu').style.borderColor = '#00ffaa';
+            document.getElementById('touchControls').classList.remove('active');
+}
+
+        function restartGame() {
+             const gameOverTitle = document.querySelector('#gameOverMenu h2');
+            gameOverTitle.textContent = 'Τέλος Παιχνιδιού!';
+            gameOverTitle.style.color = '#ff0066';
+            document.getElementById('gameOverMenu').style.borderColor = '#ff0066';
+            document.getElementById('gameOverMenu').style.display = 'none';
+            startGame();
+        }
+
+        function showMainMenu() {
+            gameState = 'menu';
+            document.getElementById('mainMenu').style.display = 'block';
+            document.getElementById('gameOverMenu').style.display = 'none';
+            document.getElementById('highScoresMenu').style.display = 'none';
+            document.getElementById('touchControls').classList.remove('active');
+        }
+
+        function togglePause() {
+            if (gameState === 'playing') {
+                gameState = 'paused';
+            } else if (gameState === 'paused') {
+                gameState = 'playing';
+            }
+        }
+
+        function showInstructions() {
+            document.getElementById('instructionsPanel').style.display = 'block';
+        }
+
+        function hideInstructions() {
+            document.getElementById('instructionsPanel').style.display = 'none';
+        }
+
+        function showHighScores() {
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('highScoresMenu').style.display = 'block';
+            displayHighScores();
+        }
+
+        function hideHighScores() {
+            document.getElementById('highScoresMenu').style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'block';
+        }
+
+        function saveScore() {
+            const name = document.getElementById('gameOverName').value.trim() || 'Άγνωστος';
+            const highScores = JSON.parse(localStorage.getItem('galaxyDefenderHighScores') || '[]');
+            
+            highScores.push({
+                name: name,
+                score: score,
+                level: level,
+                date: new Date().toLocaleDateString('el-GR')
+            });
+            
+            highScores.sort((a, b) => b.score - a.score);
+            highScores.splice(10); // Keep only top 10
+            
+            localStorage.setItem('galaxyDefenderHighScores', JSON.stringify(highScores));
+            document.getElementById('gameOverMenu').style.display = 'none';
+            showHighScores();
+        }
+
+       function displayHighScores() {
+    const highScores = JSON.parse(localStorage.getItem('galaxyDefenderHighScores') || '[]');
+    const listElement = document.getElementById('highScoresList');
+    
+    if (highScores.length === 0) {
+        listElement.innerHTML = '<p style="color: #00ffff;">Δεν υπάρχουν ακόμη υψηλά σκορ!</p>';
+    } else {
+        let html = '<div style="text-align: left; max-height: 400px; overflow-y: auto;">';
+        highScores.forEach((score, index) => {
+            html += `
+                <div style="padding: 10px; margin: 5px 0; background: #000000; border-radius: 10px; border: 2px solid #00ffff; color: #00ffff;">
+                    <strong style="color: #00ffff;">#${index + 1}</strong> - <span style="color: #00ffff;">${score.name}</span><br>
+                    <span style="color: #00ffff;">Σκορ: ${score.score}</span> | 
+                    <span style="color: #00ffff;">Επίπεδο: ${score.level}</span><br>
+                    <small style="color: #00ffff; opacity: 0.7;">${score.date}</small>
+                </div>
+            `;
+        });
+        html += '</div>';
+        listElement.innerHTML = html;
+    }
+}
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const button = event.target;
+            button.textContent = soundEnabled ? '🔊 Ήχος' : '🔇 Ήχος';
+        }
+
+        function toggleMusic() {
+    musicEnabled = !musicEnabled;
+    const button = event.target;
+    button.textContent = musicEnabled ? '🎵 Μουσική' : '🎵 Μουσική';
+    
+    if (musicEnabled && gameState === 'playing') {
+        initBackgroundMusic();
+    } else {
+        stopBackgroundMusic();
+    }
+}
+
+        // Input event listeners
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            
+            if (e.key === 'p' || e.key === 'P') {
+                togglePause();
+                e.preventDefault();
+            }
+            if (e.key === 'Escape') {
+                if (gameState === 'playing' || gameState === 'paused') {
+                    showMainMenu();
+                }
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // Mouse controls
+        canvas.addEventListener('click', (e) => {
+            if (gameState === 'playing') {
+                keys[' '] = true;
+                setTimeout(() => keys[' '] = false, 100);
+            }
+        });
+
+        // Touch controls
+        function setupTouchControls() {
+            const dpadButtons = document.querySelectorAll('.dpad-button');
+            const shootButton = document.getElementById('shootButton');
+
+            dpadButtons.forEach(button => {
+                button.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const direction = button.dataset.direction;
+                    touchInput[direction] = true;
+                    button.style.background = 'rgba(0, 255, 255, 0.6)';
+                });
+
+                button.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    const direction = button.dataset.direction;
+                    touchInput[direction] = false;
+                    button.style.background = 'rgba(0, 255, 255, 0.3)';
+                });
+
+                button.addEventListener('touchcancel', (e) => {
+                    e.preventDefault();
+                    const direction = button.dataset.direction;
+                    touchInput[direction] = false;
+                    button.style.background = 'rgba(0, 255, 255, 0.3)';
+                });
+            });
+
+            shootButton.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                touchInput.shoot = true;
+                shootButton.style.background = 'rgba(255, 0, 110, 0.6)';
+            });
+
+            shootButton.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                touchInput.shoot = false;
+                shootButton.style.background = 'rgba(255, 0, 110, 0.3)';
+            });
+
+            shootButton.addEventListener('touchcancel', (e) => {
+                e.preventDefault();
+                touchInput.shoot = false;
+                shootButton.style.background = 'rgba(255, 0, 110, 0.3)';
+            });
+        }
+
+        // Prevent scrolling on touch devices
+        document.addEventListener('touchmove', (e) => {
+            if (e.target.closest('.game-container')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // Initialize
+        window.addEventListener('load', () => {
+            resizeCanvas();
+            setupTouchControls();
+            
+            // Load saved player name
+            const savedName = localStorage.getItem('galaxyDefenderPlayerName');
+            if (savedName) {
+                document.getElementById('playerName').value = savedName;
+            }
+            
+            // Start game loop
+            gameLoop = requestAnimationFrame(gameStep);
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            
+            // Show/hide touch controls based on screen size
+            if (window.innerWidth <= 768 && gameState === 'playing') {
+                document.getElementById('touchControls').classList.add('active');
+            } else {
+                document.getElementById('touchControls').classList.remove('active');
+            }
+        });
+
+        // Prevent context menu on mobile
+        document.addEventListener('contextmenu', (e) => {
+            if (e.target.closest('.game-container')) {
+                e.preventDefault();
+            }
+        });
+    </script>
+     <footer style="text-align: center; margin-top: 20px; color: #00ffff; font-size: 0.9em;">
+       Galaxy Defender V.01 &copy; Dimitrios Gallis 2025 - All rights reserved
+    </footer>
+</body>
+</html>
