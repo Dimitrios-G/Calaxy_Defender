@@ -482,7 +482,6 @@
             <div class="name-input">
                 <input type="text" id="playerName" placeholder="Γράψε το όνομά σου" maxlength="20">
             </div>
-            <p>W=power up L = life S= shield</p>
             <button onclick="startGame()">Ξεκίνα Παιχνίδι</button>
             <button onclick="showInstructions()">Οδηγίες</button>
             <button onclick="showHighScores()">High Scores</button>
@@ -493,7 +492,7 @@
                 <p><strong>Πυροβολισμός:</strong> Spacebar ή Click</p>
                 <p><strong>Παύση:</strong> P ή Escape</p>
                 <p><strong>Στόχος:</strong> Κατάστρεψε τους εχθρούς και αποφύγε τις επιθέσεις τους!</p>
-                <p><strong>Bonus:</strong> Μάζεψε power-ups για ενίσχυση όπλων!</p>
+                <p><strong>Bonus:</strong> W = Power Up L -life S = Shield - Μάζεψε power-ups για ενίσχυση όπλων!</p>
                 <button onclick="hideInstructions()">Κλείσιμο</button>
             </div>
         </div>
@@ -513,7 +512,7 @@
 
         <!-- High Scores -->
         <div id="highScoresMenu" class="menu" style="display: none;">
-            <h1>Υψηλά Σκορ</h1>
+            <h1>High Scores</h1>
             <div id="highScoresList"></div>
             <button onclick="hideHighScores()">Πίσω</button>
         </div>
